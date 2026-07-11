@@ -1,34 +1,25 @@
-<!DOCTYPE html>
 <html>
 <head>
-
   <title>What Makes High-Quality Coffee?</title>
 
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-
-  <style>
-    body {
-      font-family: Arial;
-    }
-
-    svg {
-      border: 1px solid black;
-    }
-  </style>
-
+  <script src="https://d3js.org/d3.v5.min.js"></script>
 </head>
 
 <body>
 
-  <h1>What Makes High-Quality Coffee?</h1>
+<h1>What Makes High-Quality Coffee?</h1>
 
-  <p id="scene-description">
-    Exploring the characteristics associated with highly rated Arabica coffee.
-  </p>
+<p id="scene-description">
+This narrative explores the characteristics associated with highly rated Arabica coffee.
+</p>
 
-  <h2 id="scene-title"></h2>
+<script>
+var coffeeData = [];
 
-  <svg id="chart" width="900" height="520"></svg>
+d3.csv("coffee.csv").then(function(data) {
+  coffeeData = data;
+});
+</script>
 
 </body>
 </html>
