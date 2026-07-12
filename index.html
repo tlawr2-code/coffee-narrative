@@ -1,57 +1,75 @@
-<html>
-<head>
-  <title>What Makes High-Quality Coffee?</title>
+<!DOCTYPE html>
+<html lang="en">
 
-  <script src="https://d3js.org/d3.v5.min.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Makes High-Quality Coffee?</title>
+
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <style>
+body {
+  font-family: Arial;
+}
+
+svg {
+  border: 1px solid black;
+}
+</style>
 </head>
 
 <body>
 
-<h1>What Makes High-Quality Coffee?</h1>
+    <h1>What Makes High-Quality Coffee?</h1>
 
-<p id="scene-description">
-This narrative explores the characteristics associated with highly rated Arabica coffee.
-</p>
+    <p id="scene-description">
+        This narrative explores the characteristics associated with highly rated Arabica coffee.
+    </p>
 
-<script>
-var coffeeData = [];
+    <h2 id="scene-title"></h2>
 
-d3.csv("coffee.csv").then(function(data) {
+    <svg id="chart" width="900" height="520"></svg>
 
-  console.log(data.columns);
-  console.log(data[0]);
+    <script>
+        var coffeeData = [];
 
-  coffeeData = data.map(function(d) {
-    return {
-      country:
-        d["Country.of.Origin"] ||
-        d["Country of Origin"] ||
-        d.Country,
+        d3.csv("coffee.csv").then(function (data) {
 
-      score: Number(
-        d["Total.Cup.Points"] ||
-        d["Total Cup Points"]
-      ),
+            console.log(data.columns);
+            console.log(data[0]);
 
-      acidity: Number(d.Acidity),
-      aroma: Number(d.Aroma),
-      flavor: Number(d.Flavor)
-    };
-  });
+            coffeeData = data.map(function (d) {
+                return {
+                    country:
+                        d["Country.of.Origin"] ||
+                        d["Country of Origin"] ||
+                        d.Country,
 
-  coffeeData = coffeeData.filter(function(d) {
-    return (
-      d.country &&
-      isFinite(d.score) &&
-      isFinite(d.acidity) &&
-      isFinite(d.aroma) &&
-      isFinite(d.flavor)
-    );
-  });
+                    score: Number(
+                        d["Total.Cup.Points"] ||
+                        d["Total Cup Points"]
+                    ),
 
-  console.log(coffeeData);
-});
-</script>
+                    acidity: Number(d.Acidity),
+                    aroma: Number(d.Aroma),
+                    flavor: Number(d.Flavor)
+                };
+            });
+
+            coffeeData = coffeeData.filter(function (d) {
+                return (
+                    d.country &&
+                    isFinite(d.score) &&
+                    isFinite(d.acidity) &&
+                    isFinite(d.aroma) &&
+                    isFinite(d.flavor)
+                );
+            });
+
+            console.log(coffeeData);
+        });
+    </script>
 
 </body>
+
 </html>
