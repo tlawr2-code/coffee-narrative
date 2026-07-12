@@ -17,7 +17,39 @@ This narrative explores the characteristics associated with highly rated Arabica
 var coffeeData = [];
 
 d3.csv("coffee.csv").then(function(data) {
-  coffeeData = data;
+
+  console.log(data.columns);
+  console.log(data[0]);
+
+  coffeeData = data.map(function(d) {
+    return {
+      country:
+        d["Country.of.Origin"] ||
+        d["Country of Origin"] ||
+        d.Country,
+
+      score: Number(
+        d["Total.Cup.Points"] ||
+        d["Total Cup Points"]
+      ),
+
+      acidity: Number(d.Acidity),
+      aroma: Number(d.Aroma),
+      flavor: Number(d.Flavor)
+    };
+  });
+
+  coffeeData = coffeeData.filter(function(d) {
+    return (
+      d.country &&
+      isFinite(d.score) &&
+      isFinite(d.acidity) &&
+      isFinite(d.aroma) &&
+      isFinite(d.flavor)
+    );
+  });
+
+  console.log(coffeeData);
 });
 </script>
 
