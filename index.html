@@ -76,6 +76,8 @@
 
         var coffeeData = [];
 
+        var currentScene = 1;
+
         d3.csv("coffee.csv").then(function (data) {
 
             data.forEach(function (d) {
@@ -109,6 +111,8 @@
         });
 
         function drawScene1() {
+
+            currentScene = 1;
 
             d3.select("#scene-title")
                 .text(
@@ -185,8 +189,10 @@
                         .style("opacity", 1)
                         .html(
                             "Country: " + d.country +
-                            "<br>Acidity: " + d.acidity.toFixed(1) +
-                            "<br>Total Score: " + d.score.toFixed(1)
+                            "<br>Acidity: " +
+                            d.acidity.toFixed(1) +
+                            "<br>Total Score: " +
+                            d.score.toFixed(1)
                         );
                 })
                 .on("mousemove", function () {
@@ -236,6 +242,150 @@
                 .attr("y2", y(87))
                 .attr("stroke", "black");
         }
+
+        function drawScene2() {
+
+            currentScene = 2;
+
+            d3.select("#scene-title")
+                .text(
+                    "Scene 2: Aroma and Flavor"
+                );
+
+            d3.select("#scene-description")
+                .text(
+                    "This scene explores the relationship between coffee aroma and flavor."
+                );
+
+            d3.select("#tooltip")
+                .style("opacity", 0);
+
+            svg.selectAll("*").remove();
+
+            var chart = svg.append("g")
+                .attr(
+                    "transform",
+                    "translate(" +
+                        margin.left +
+                        "," +
+                        margin.top +
+                        ")"
+                );
+
+            var x = d3.scaleLinear()
+                .domain([5, 9])
+                .range([0, chartWidth]);
+
+            var y = d3.scaleLinear()
+                .domain([5, 9])
+                .range([chartHeight, 0]);
+
+            var visibleData = coffeeData.filter(function (d) {
+                return (
+                    d.aroma >= 5 &&
+                    d.aroma <= 9 &&
+                    d.flavor >= 5 &&
+                    d.flavor <= 9
+                );
+            });
+
+            chart.append("g")
+                .attr(
+                    "transform",
+                    "translate(0," +
+                        chartHeight +
+                        ")"
+                )
+                .call(d3.axisBottom(x));
+
+            chart.append("g")
+                .call(d3.axisLeft(y));
+
+            var tooltip = d3.select("#tooltip");
+
+            chart.selectAll("circle")
+                .data(visibleData)
+                .enter()
+                .append("circle")
+                .attr("cx", function (d) {
+                    return x(d.aroma);
+                })
+                .attr("cy", function (d) {
+                    return y(d.flavor);
+                })
+                .attr("r", 4)
+                .attr("fill", "darkorange")
+                .attr("opacity", 0.7)
+                .on("mouseover", function (d) {
+
+                    d3.select(this)
+                        .attr("r", 6);
+
+                    tooltip
+                        .style("opacity", 1)
+                        .html(
+                            "Country: " + d.country +
+                            "<br>Aroma: " +
+                            d.aroma.toFixed(1) +
+                            "<br>Flavor: " +
+                            d.flavor.toFixed(1)
+                        );
+                })
+                .on("mousemove", function () {
+                    tooltip
+                        .style(
+                            "left",
+                            (d3.event.pageX + 10) + "px"
+                        )
+                        .style(
+                            "top",
+                            (d3.event.pageY - 20) + "px"
+                        );
+                })
+                .on("mouseout", function () {
+
+                    d3.select(this)
+                        .attr("r", 4);
+
+                    tooltip.style("opacity", 0);
+                });
+
+            chart.append("text")
+                .attr("x", chartWidth / 2)
+                .attr("y", chartHeight + 45)
+                .attr("text-anchor", "middle")
+                .text("Aroma");
+
+            chart.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("x", -chartHeight / 2)
+                .attr("y", -50)
+                .attr("text-anchor", "middle")
+                .text("Flavor");
+
+            chart.append("text")
+                .attr("x", x(5.5))
+                .attr("y", y(8.7))
+                .attr("font-size", "14px")
+                .text(
+                    "Coffee with higher aroma often has higher flavor scores."
+                );
+
+            chart.append("line")
+                .attr("x1", x(6.1))
+                .attr("y1", y(8.6))
+                .attr("x2", x(8.0))
+                .attr("y2", y(8.0))
+                .attr("stroke", "black");
+        }
+
+        d3.select("#next-button")
+            .on("click", function () {
+
+                if (currentScene === 1) {
+                    drawScene2();
+                }
+            });
     </script>
 
 </body>
