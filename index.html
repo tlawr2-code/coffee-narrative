@@ -26,6 +26,11 @@
             pointer-events: none;
             opacity: 0;
         }
+
+        button {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
     </style>
 </head>
 
@@ -33,16 +38,22 @@
 
     <h1>What Makes High-Quality Coffee?</h1>
 
-    <p>
+    <p id="scene-description">
         This scene explores the relationship between coffee acidity
         and total cup score.
     </p>
 
-    <h2>Scene 1: Acidity and Overall Quality</h2>
+    <h2 id="scene-title">
+        Scene 1: Acidity and Overall Quality
+    </h2>
 
     <svg id="chart" width="900" height="520"></svg>
 
     <div id="tooltip" class="tooltip"></div>
+
+    <br>
+    <br>
+    <button id="next-button">Next</button>
 
     <script>
         var svg = d3.select("#chart");
@@ -63,6 +74,8 @@
         var chartHeight =
             height - margin.top - margin.bottom;
 
+        var coffeeData = [];
+
         d3.csv("coffee.csv").then(function (data) {
 
             data.forEach(function (d) {
@@ -77,24 +90,37 @@
                     d["Total.Cup.Points"] ||
                     d["Total Cup Points"]
                 );
+
+                d.aroma = Number(d.Aroma);
+                d.flavor = Number(d.Flavor);
             });
 
-            data = data.filter(function (d) {
+            coffeeData = data.filter(function (d) {
                 return (
                     d.country &&
                     isFinite(d.acidity) &&
                     isFinite(d.score) &&
-                    d.acidity >= 5 &&
-                    d.acidity <= 9 &&
-                    d.score >= 50 &&
-                    d.score <= 100
+                    isFinite(d.aroma) &&
+                    isFinite(d.flavor)
                 );
             });
 
-            drawChart(data);
+            drawScene1();
         });
 
-        function drawChart(data) {
+        function drawScene1() {
+
+            d3.select("#scene-title")
+                .text(
+                    "Scene 1: Acidity and Overall Quality"
+                );
+
+            d3.select("#scene-description")
+                .text(
+                    "This scene explores the relationship between coffee acidity and total cup score."
+                );
+
+            svg.selectAll("*").remove();
 
             var chart = svg.append("g")
                 .attr(
@@ -114,6 +140,15 @@
                 .domain([50, 100])
                 .range([chartHeight, 0]);
 
+            var visibleData = coffeeData.filter(function (d) {
+                return (
+                    d.acidity >= 5 &&
+                    d.acidity <= 9 &&
+                    d.score >= 50 &&
+                    d.score <= 100
+                );
+            });
+
             chart.append("g")
                 .attr(
                     "transform",
@@ -129,7 +164,7 @@
             var tooltip = d3.select("#tooltip");
 
             chart.selectAll("circle")
-                .data(data)
+                .data(visibleData)
                 .enter()
                 .append("circle")
                 .attr("cx", function (d) {
