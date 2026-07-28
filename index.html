@@ -3,13 +3,14 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>What Makes High-Quality Coffee?</title>
 
     <script src="https://d3js.org/d3.v5.min.js"></script>
+
     <style>
         body {
             font-family: Arial;
+            margin: 20px;
         }
 
         svg {
@@ -22,141 +23,134 @@
 
     <h1>What Makes High-Quality Coffee?</h1>
 
-    <p id="scene-description">
-        This narrative explores the characteristics associated with highly rated Arabica coffee.
+    <p>
+        This scene explores the relationship between coffee acidity
+        and total cup score.
     </p>
 
-    <h2 id="scene-title"></h2>
+    <h2>Scene 1: Acidity and Overall Quality</h2>
 
     <svg id="chart" width="900" height="520"></svg>
 
-<script>
-    var coffeeData = [];
+    <script>
+        var svg = d3.select("#chart");
 
-    var svg = d3.select("#chart");
+        var width = 900;
+        var height = 520;
 
-    var width = 900;
-    var height = 520;
+        var margin = {
+            top: 40,
+            right: 50,
+            bottom: 60,
+            left: 70
+        };
 
-    var margin = {
-        top: 40,
-        right: 80,
-        bottom: 60,
-        left: 70
-    };
+        var chartWidth =
+            width - margin.left - margin.right;
 
-    var chartWidth = width - margin.left - margin.right;
-    var chartHeight = height - margin.top - margin.bottom;
+        var chartHeight =
+            height - margin.top - margin.bottom;
 
-    d3.csv("coffee.csv").then(function (data) {
+        d3.csv("coffee.csv").then(function (data) {
 
-        console.log(data.columns);
-        console.log(data[0]);
+            data.forEach(function (d) {
+                d.acidity = Number(d.Acidity);
 
-        coffeeData = data.map(function (d) {
-            return {
-                country:
-                    d["Country.of.Origin"] ||
-                    d["Country of Origin"] ||
-                    d.Country,
-
-                score: Number(
+                d.score = Number(
                     d["Total.Cup.Points"] ||
                     d["Total Cup Points"]
-                ),
+                );
+            });
 
-                acidity: Number(d.Acidity),
-                aroma: Number(d.Aroma),
-                flavor: Number(d.Flavor)
-            };
+            data = data.filter(function (d) {
+                return (
+                    isFinite(d.acidity) &&
+                    isFinite(d.score) &&
+                    d.acidity >= 5 &&
+                    d.acidity <= 9 &&
+                    d.score >= 50 &&
+                    d.score <= 100
+                );
+            });
+
+            drawChart(data);
         });
 
-        coffeeData = coffeeData.filter(function (d) {
-            return (
-                d.country &&
-                isFinite(d.score) &&
-                isFinite(d.acidity) &&
-                isFinite(d.aroma) &&
-                isFinite(d.flavor)
-            );
-        });
+        function drawChart(data) {
 
-        console.log(coffeeData);
+            var chart = svg.append("g")
+                .attr(
+                    "transform",
+                    "translate(" +
+                        margin.left +
+                        "," +
+                        margin.top +
+                        ")"
+                );
 
-        drawScene1();
-    });
+            var x = d3.scaleLinear()
+                .domain([5, 9])
+                .range([0, chartWidth]);
 
-    function drawScene1() {
+            var y = d3.scaleLinear()
+                .domain([50, 100])
+                .range([chartHeight, 0]);
 
-        d3.select("#scene-title")
-            .text("Scene 1: Acidity and Overall Quality");
+            chart.append("g")
+                .attr(
+                    "transform",
+                    "translate(0," +
+                        chartHeight +
+                        ")"
+                )
+                .call(d3.axisBottom(x));
 
-        d3.select("#scene-description")
-            .text(
-                "This scene examines whether coffee acidity is associated with total cup score."
-            );
+            chart.append("g")
+                .call(d3.axisLeft(y));
 
-        svg.selectAll("*").remove();
-
-        var chart = svg.append("g")
-            .attr(
-                "transform",
-                "translate(" + margin.left + "," + margin.top + ")"
-            );
-
-        var x = d3.scaleLinear()
-            .domain(
-                d3.extent(coffeeData, function (d) {
-                    return d.acidity;
+            chart.selectAll("circle")
+                .data(data)
+                .enter()
+                .append("circle")
+                .attr("cx", function (d) {
+                    return x(d.acidity);
                 })
-            )
-            .nice()
-            .range([0, chartWidth]);
-
-        var y = d3.scaleLinear()
-            .domain(
-                d3.extent(coffeeData, function (d) {
-                    return d.score;
+                .attr("cy", function (d) {
+                    return y(d.score);
                 })
-            )
-            .nice()
-            .range([chartHeight, 0]);
+                .attr("r", 4)
+                .attr("fill", "steelblue")
+                .attr("opacity", 0.7);
 
-        chart.append("g")
-            .attr("transform", "translate(0," + chartHeight + ")")
-            .call(d3.axisBottom(x));
+            chart.append("text")
+                .attr("x", chartWidth / 2)
+                .attr("y", chartHeight + 45)
+                .attr("text-anchor", "middle")
+                .text("Acidity");
 
-        chart.append("g")
-            .call(d3.axisLeft(y));
+            chart.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("x", -chartHeight / 2)
+                .attr("y", -50)
+                .attr("text-anchor", "middle")
+                .text("Total Cup Points");
 
-        chart.selectAll("circle")
-            .data(coffeeData)
-            .enter()
-            .append("circle")
-            .attr("cx", function (d) {
-                return x(d.acidity);
-            })
-            .attr("cy", function (d) {
-                return y(d.score);
-            })
-            .attr("r", 4)
-            .style("fill", "steelblue")
-            .style("opacity", 0.6);
+            chart.append("line")
+                .attr("x1", x(5.9))
+                .attr("y1", y(95))
+                .attr("x2", x(8.1))
+                .attr("y2", y(87))
+                .attr("stroke", "black");
 
-        chart.append("text")
-            .attr("x", chartWidth / 2)
-            .attr("y", chartHeight + 45)
-            .attr("text-anchor", "middle")
-            .text("Acidity");
-
-        chart.append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("x", -chartHeight / 2)
-            .attr("y", -48)
-            .attr("text-anchor", "middle")
-            .text("Total Cup Points");
-    }
-</script>
+            chart.append("text")
+                .attr("x", x(5.5))
+                .attr("y", y(96))
+                .attr("font-size", "14px")
+                .text(
+                    "Higher acidity is linked to higher scores."
+                );
+        }
+    </script>
 
 </body>
 
