@@ -142,12 +142,16 @@
                 .attr("fill", "steelblue")
                 .attr("opacity", 0.7)
                 .on("mouseover", function (d) {
+
+                    d3.select(this)
+                        .attr("r", 6);
+
                     tooltip
                         .style("opacity", 1)
                         .html(
                             "Country: " + d.country +
-                            "<br>Acidity: " + d.acidity +
-                            "<br>Total Score: " + d.score
+                            "<br>Acidity: " + d.acidity.toFixed(1) +
+                            "<br>Total Score: " + d.score.toFixed(1)
                         );
                 })
                 .on("mousemove", function () {
@@ -162,6 +166,10 @@
                         );
                 })
                 .on("mouseout", function () {
+
+                    d3.select(this)
+                        .attr("r", 4);
+
                     tooltip.style("opacity", 0);
                 });
 
@@ -178,13 +186,6 @@
                 .attr("text-anchor", "middle")
                 .text("Total Cup Points");
 
-            chart.append("line")
-                .attr("x1", x(6.0))
-                .attr("y1", y(95))
-                .attr("x2", x(8.1))
-                .attr("y2", y(87))
-                .attr("stroke", "black");
-
             chart.append("text")
                 .attr("x", x(5.5))
                 .attr("y", y(96))
@@ -192,6 +193,13 @@
                 .text(
                     "Higher acidity is generally associated with higher scores."
                 );
+
+            chart.append("line")
+                .attr("x1", x(6.0))
+                .attr("y1", y(95.5))
+                .attr("x2", x(8.1))
+                .attr("y2", y(87))
+                .attr("stroke", "black");
         }
     </script>
 
