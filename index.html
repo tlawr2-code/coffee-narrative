@@ -95,6 +95,7 @@
 
                 d.aroma = Number(d.Aroma);
                 d.flavor = Number(d.Flavor);
+                d.sweetness = Number(d.Sweetness);
             });
 
             coffeeData = data.filter(function (d) {
@@ -123,6 +124,12 @@
                 .text(
                     "This scene explores the relationship between coffee acidity and total cup score."
                 );
+
+            d3.select("#next-button")
+                .text("Next");
+
+            d3.select("#tooltip")
+                .style("opacity", 0);
 
             svg.selectAll("*").remove();
 
@@ -257,6 +264,9 @@
                     "This scene explores the relationship between coffee aroma and flavor."
                 );
 
+            d3.select("#next-button")
+                .text("Next");
+
             d3.select("#tooltip")
                 .style("opacity", 0);
 
@@ -379,11 +389,155 @@
                 .attr("stroke", "black");
         }
 
+        function drawScene3() {
+
+            currentScene = 3;
+
+            d3.select("#scene-title")
+                .text(
+                    "Scene 3: Sweetness and Overall Quality"
+                );
+
+            d3.select("#scene-description")
+                .text(
+                    "This scene explores the relationship between coffee sweetness and total cup score."
+                );
+
+            d3.select("#next-button")
+                .text("Start Over");
+
+            d3.select("#tooltip")
+                .style("opacity", 0);
+
+            svg.selectAll("*").remove();
+
+            var chart = svg.append("g")
+                .attr(
+                    "transform",
+                    "translate(" +
+                        margin.left +
+                        "," +
+                        margin.top +
+                        ")"
+                );
+
+            var x = d3.scaleLinear()
+                .domain([5, 10])
+                .range([0, chartWidth]);
+
+            var y = d3.scaleLinear()
+                .domain([50, 100])
+                .range([chartHeight, 0]);
+
+            var visibleData = coffeeData.filter(function (d) {
+                return (
+                    isFinite(d.sweetness) &&
+                    d.sweetness >= 5 &&
+                    d.sweetness <= 10 &&
+                    d.score >= 50 &&
+                    d.score <= 100
+                );
+            });
+
+            chart.append("g")
+                .attr(
+                    "transform",
+                    "translate(0," +
+                        chartHeight +
+                        ")"
+                )
+                .call(d3.axisBottom(x));
+
+            chart.append("g")
+                .call(d3.axisLeft(y));
+
+            var tooltip = d3.select("#tooltip");
+
+            chart.selectAll("circle")
+                .data(visibleData)
+                .enter()
+                .append("circle")
+                .attr("cx", function (d) {
+                    return x(d.sweetness);
+                })
+                .attr("cy", function (d) {
+                    return y(d.score);
+                })
+                .attr("r", 4)
+                .attr("fill", "green")
+                .attr("opacity", 0.7)
+                .on("mouseover", function (d) {
+
+                    d3.select(this)
+                        .attr("r", 6);
+
+                    tooltip
+                        .style("opacity", 1)
+                        .html(
+                            "Country: " + d.country +
+                            "<br>Sweetness: " +
+                            d.sweetness.toFixed(1) +
+                            "<br>Total Score: " +
+                            d.score.toFixed(1)
+                        );
+                })
+                .on("mousemove", function () {
+                    tooltip
+                        .style(
+                            "left",
+                            (d3.event.pageX + 10) + "px"
+                        )
+                        .style(
+                            "top",
+                            (d3.event.pageY - 20) + "px"
+                        );
+                })
+                .on("mouseout", function () {
+
+                    d3.select(this)
+                        .attr("r", 4);
+
+                    tooltip.style("opacity", 0);
+                });
+
+            chart.append("text")
+                .attr("x", chartWidth / 2)
+                .attr("y", chartHeight + 45)
+                .attr("text-anchor", "middle")
+                .text("Sweetness");
+
+            chart.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("x", -chartHeight / 2)
+                .attr("y", -50)
+                .attr("text-anchor", "middle")
+                .text("Total Cup Points");
+
+            chart.append("text")
+                .attr("x", x(5.4))
+                .attr("y", y(96))
+                .attr("font-size", "14px")
+                .text(
+                    "Sweeter coffees are often associated with higher total scores."
+                );
+
+            chart.append("line")
+                .attr("x1", x(6.2))
+                .attr("y1", y(95.5))
+                .attr("x2", x(9.0))
+                .attr("y2", y(87))
+                .attr("stroke", "black");
+        }
+
         d3.select("#next-button")
             .on("click", function () {
 
                 if (currentScene === 1) {
                     drawScene2();
+                } else if (currentScene === 2) {
+                    drawScene3();
+                } else {
+                    drawScene1();
                 }
             });
     </script>
