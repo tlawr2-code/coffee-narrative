@@ -39,8 +39,7 @@
     <h1>What Makes High-Quality Coffee?</h1>
 
     <p id="scene-description">
-        This scene explores the relationship between coffee acidity
-        and total cup score.
+        This scene explores the relationship between coffee acidity and total cup score.
     </p>
 
     <h2 id="scene-title">
@@ -53,10 +52,12 @@
 
     <br>
     <br>
+
     <button id="next-button">Next</button>
 
     <script>
         var svg = d3.select("#chart");
+        var tooltip = d3.select("#tooltip");
 
         var width = 900;
         var height = 520;
@@ -68,14 +69,10 @@
             left: 70
         };
 
-        var chartWidth =
-            width - margin.left - margin.right;
-
-        var chartHeight =
-            height - margin.top - margin.bottom;
+        var chartWidth = width - margin.left - margin.right;
+        var chartHeight = height - margin.top - margin.bottom;
 
         var coffeeData = [];
-
         var currentScene = 1;
 
         d3.csv("coffee.csv").then(function (data) {
@@ -86,16 +83,15 @@
                     d["Country of Origin"] ||
                     d.Country;
 
-                d.acidity = Number(d.Acidity);
+                d.acidity = +d.Acidity;
+                d.aroma = +d.Aroma;
+                d.flavor = +d.Flavor;
+                d.sweetness = +d.Sweetness;
 
-                d.score = Number(
+                d.score = +(
                     d["Total.Cup.Points"] ||
                     d["Total Cup Points"]
                 );
-
-                d.aroma = Number(d.Aroma);
-                d.flavor = Number(d.Flavor);
-                d.sweetness = Number(d.Sweetness);
             });
 
             coffeeData = data.filter(function (d) {
@@ -104,21 +100,22 @@
                     isFinite(d.acidity) &&
                     isFinite(d.score) &&
                     isFinite(d.aroma) &&
-                    isFinite(d.flavor)
+                    isFinite(d.flavor) &&
+                    isFinite(d.sweetness)
                 );
             });
 
             drawScene1();
+        })
+        .catch(function (error) {
+            console.log("Error loading coffee.csv:", error);
         });
-
         function drawScene1() {
 
             currentScene = 1;
 
             d3.select("#scene-title")
-                .text(
-                    "Scene 1: Acidity and Overall Quality"
-                );
+                .text("Scene 1: Acidity and Overall Quality");
 
             d3.select("#scene-description")
                 .text(
@@ -128,19 +125,14 @@
             d3.select("#next-button")
                 .text("Next");
 
-            d3.select("#tooltip")
-                .style("opacity", 0);
+            tooltip.style("opacity", 0);
 
             svg.selectAll("*").remove();
 
             var chart = svg.append("g")
                 .attr(
                     "transform",
-                    "translate(" +
-                        margin.left +
-                        "," +
-                        margin.top +
-                        ")"
+                    "translate(" + margin.left + "," + margin.top + ")"
                 );
 
             var x = d3.scaleLinear()
@@ -163,16 +155,12 @@
             chart.append("g")
                 .attr(
                     "transform",
-                    "translate(0," +
-                        chartHeight +
-                        ")"
+                    "translate(0," + chartHeight + ")"
                 )
                 .call(d3.axisBottom(x));
 
             chart.append("g")
                 .call(d3.axisLeft(y));
-
-            var tooltip = d3.select("#tooltip");
 
             chart.selectAll("circle")
                 .data(visibleData)
@@ -186,20 +174,16 @@
                 })
                 .attr("r", 4)
                 .attr("fill", "steelblue")
-                .attr("opacity", 0.7)
+                .attr("opacity", 0.6)
                 .on("mouseover", function (d) {
-
-                    d3.select(this)
-                        .attr("r", 6);
+                    d3.select(this).attr("r", 6);
 
                     tooltip
                         .style("opacity", 1)
                         .html(
                             "Country: " + d.country +
-                            "<br>Acidity: " +
-                            d.acidity.toFixed(1) +
-                            "<br>Total Score: " +
-                            d.score.toFixed(1)
+                            "<br>Acidity: " + d.acidity.toFixed(1) +
+                            "<br>Total Score: " + d.score.toFixed(1)
                         );
                 })
                 .on("mousemove", function () {
@@ -214,10 +198,7 @@
                         );
                 })
                 .on("mouseout", function () {
-
-                    d3.select(this)
-                        .attr("r", 4);
-
+                    d3.select(this).attr("r", 4);
                     tooltip.style("opacity", 0);
                 });
 
@@ -243,9 +224,9 @@
                 );
 
             chart.append("line")
-                .attr("x1", x(6.0))
-                .attr("y1", y(95.5))
-                .attr("x2", x(8.1))
+                .attr("x1", x(6.1))
+                .attr("y1", y(95.2))
+                .attr("x2", x(8.0))
                 .attr("y2", y(87))
                 .attr("stroke", "black");
         }
@@ -255,9 +236,7 @@
             currentScene = 2;
 
             d3.select("#scene-title")
-                .text(
-                    "Scene 2: Aroma and Flavor"
-                );
+                .text("Scene 2: Aroma and Flavor");
 
             d3.select("#scene-description")
                 .text(
@@ -267,19 +246,14 @@
             d3.select("#next-button")
                 .text("Next");
 
-            d3.select("#tooltip")
-                .style("opacity", 0);
+            tooltip.style("opacity", 0);
 
             svg.selectAll("*").remove();
 
             var chart = svg.append("g")
                 .attr(
                     "transform",
-                    "translate(" +
-                        margin.left +
-                        "," +
-                        margin.top +
-                        ")"
+                    "translate(" + margin.left + "," + margin.top + ")"
                 );
 
             var x = d3.scaleLinear()
@@ -302,16 +276,12 @@
             chart.append("g")
                 .attr(
                     "transform",
-                    "translate(0," +
-                        chartHeight +
-                        ")"
+                    "translate(0," + chartHeight + ")"
                 )
                 .call(d3.axisBottom(x));
 
             chart.append("g")
                 .call(d3.axisLeft(y));
-
-            var tooltip = d3.select("#tooltip");
 
             chart.selectAll("circle")
                 .data(visibleData)
@@ -325,20 +295,16 @@
                 })
                 .attr("r", 4)
                 .attr("fill", "darkorange")
-                .attr("opacity", 0.7)
+                .attr("opacity", 0.6)
                 .on("mouseover", function (d) {
-
-                    d3.select(this)
-                        .attr("r", 6);
+                    d3.select(this).attr("r", 6);
 
                     tooltip
                         .style("opacity", 1)
                         .html(
                             "Country: " + d.country +
-                            "<br>Aroma: " +
-                            d.aroma.toFixed(1) +
-                            "<br>Flavor: " +
-                            d.flavor.toFixed(1)
+                            "<br>Aroma: " + d.aroma.toFixed(1) +
+                            "<br>Flavor: " + d.flavor.toFixed(1)
                         );
                 })
                 .on("mousemove", function () {
@@ -353,10 +319,7 @@
                         );
                 })
                 .on("mouseout", function () {
-
-                    d3.select(this)
-                        .attr("r", 4);
-
+                    d3.select(this).attr("r", 4);
                     tooltip.style("opacity", 0);
                 });
 
@@ -378,13 +341,13 @@
                 .attr("y", y(8.7))
                 .attr("font-size", "14px")
                 .text(
-                    "Coffee with higher aroma often has higher flavor scores."
+                    "Higher aroma scores are generally connected to higher flavor scores."
                 );
 
             chart.append("line")
                 .attr("x1", x(6.1))
-                .attr("y1", y(8.6))
-                .attr("x2", x(8.0))
+                .attr("y1", y(8.55))
+                .attr("x2", x(7.9))
                 .attr("y2", y(8.0))
                 .attr("stroke", "black");
         }
@@ -406,19 +369,14 @@
             d3.select("#next-button")
                 .text("Start Over");
 
-            d3.select("#tooltip")
-                .style("opacity", 0);
+            tooltip.style("opacity", 0);
 
             svg.selectAll("*").remove();
 
             var chart = svg.append("g")
                 .attr(
                     "transform",
-                    "translate(" +
-                        margin.left +
-                        "," +
-                        margin.top +
-                        ")"
+                    "translate(" + margin.left + "," + margin.top + ")"
                 );
 
             var x = d3.scaleLinear()
@@ -431,7 +389,6 @@
 
             var visibleData = coffeeData.filter(function (d) {
                 return (
-                    isFinite(d.sweetness) &&
                     d.sweetness >= 5 &&
                     d.sweetness <= 10 &&
                     d.score >= 50 &&
@@ -442,16 +399,12 @@
             chart.append("g")
                 .attr(
                     "transform",
-                    "translate(0," +
-                        chartHeight +
-                        ")"
+                    "translate(0," + chartHeight + ")"
                 )
                 .call(d3.axisBottom(x));
 
             chart.append("g")
                 .call(d3.axisLeft(y));
-
-            var tooltip = d3.select("#tooltip");
 
             chart.selectAll("circle")
                 .data(visibleData)
@@ -465,20 +418,16 @@
                 })
                 .attr("r", 4)
                 .attr("fill", "green")
-                .attr("opacity", 0.7)
+                .attr("opacity", 0.6)
                 .on("mouseover", function (d) {
-
-                    d3.select(this)
-                        .attr("r", 6);
+                    d3.select(this).attr("r", 6);
 
                     tooltip
                         .style("opacity", 1)
                         .html(
                             "Country: " + d.country +
-                            "<br>Sweetness: " +
-                            d.sweetness.toFixed(1) +
-                            "<br>Total Score: " +
-                            d.score.toFixed(1)
+                            "<br>Sweetness: " + d.sweetness.toFixed(1) +
+                            "<br>Total Score: " + d.score.toFixed(1)
                         );
                 })
                 .on("mousemove", function () {
@@ -493,10 +442,7 @@
                         );
                 })
                 .on("mouseout", function () {
-
-                    d3.select(this)
-                        .attr("r", 4);
-
+                    d3.select(this).attr("r", 4);
                     tooltip.style("opacity", 0);
                 });
 
@@ -518,12 +464,12 @@
                 .attr("y", y(96))
                 .attr("font-size", "14px")
                 .text(
-                    "Sweeter coffees are often associated with higher total scores."
+                    "Many high-scoring coffees also have high sweetness ratings."
                 );
 
             chart.append("line")
                 .attr("x1", x(6.2))
-                .attr("y1", y(95.5))
+                .attr("y1", y(95.3))
                 .attr("x2", x(9.0))
                 .attr("y2", y(87))
                 .attr("stroke", "black");
@@ -531,7 +477,6 @@
 
         d3.select("#next-button")
             .on("click", function () {
-
                 if (currentScene === 1) {
                     drawScene2();
                 } else if (currentScene === 2) {
