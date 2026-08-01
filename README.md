@@ -20,9 +20,9 @@ The visualization explores different characteristics related to coffee quality.
 
 ## Files
 
-- `index.html` - main visualization
-- `coffee.csv` - coffee dataset
-- `README.md` - project information
+- index.html - main visualization
+- coffee.csv - coffee dataset
+- README.md - project information
 
 ## How to Run Locally
 
