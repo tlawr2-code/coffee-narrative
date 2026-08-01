@@ -3,67 +3,159 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>What Makes High-Quality Coffee?</title>
 
     <script src="https://d3js.org/d3.v5.min.js"></script>
 
     <style>
         body {
-            font-family: Arial;
-            margin: 20px;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f3f4f6;
+            color: #222222;
         }
 
-        svg {
-            border: 1px solid black;
+        .page {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 30px;
+            background-color: white;
+            border: 1px solid #dddddd;
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        #scene-description {
+            margin-bottom: 5px;
         }
 
         #interaction-help {
+            margin-top: 0;
+            margin-bottom: 12px;
             font-size: 14px;
-            color: #555;
+            color: #666666;
+        }
+
+        #scene-progress {
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #555555;
+        }
+
+        #scene-title {
+            margin-top: 0;
+        }
+
+        .chart-container {
+            margin-top: 15px;
+        }
+
+        svg {
+            display: block;
+            width: 100%;
+            height: auto;
+            background-color: white;
+            border: 1px solid #cccccc;
         }
 
         .tooltip {
             position: absolute;
+            padding: 9px;
             background-color: white;
-            border: 1px solid black;
-            padding: 8px;
+            border: 1px solid #333333;
             font-size: 13px;
+            line-height: 1.4;
             pointer-events: none;
             opacity: 0;
         }
 
+        .button-row {
+            margin-top: 20px;
+        }
+
         button {
-            padding: 8px 16px;
+            padding: 9px 18px;
+            margin-right: 8px;
             font-size: 14px;
             cursor: pointer;
+            background-color: white;
+            border: 1px solid #777777;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #eeeeee;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
+        }
+
+        .grid line {
+            stroke: #dddddd;
+        }
+
+        .grid path {
+            stroke-width: 0;
+        }
+
+        .annotation-box {
+            fill: white;
+            stroke: #999999;
+        }
+
+        .annotation-line {
+            stroke: #333333;
+            stroke-width: 1.2;
         }
     </style>
 </head>
 
 <body>
 
-    <h1>What Makes High-Quality Coffee?</h1>
+    <div class="page">
 
-    <p id="scene-description">
-        This scene explores the relationship between coffee acidity and total cup score.
-    </p>
+        <h1>What Makes High-Quality Coffee?</h1>
 
-    <p id="interaction-help">
-        Hover over a data point to see more information.
-    </p>
+        <p id="scene-description">
+            This scene explores the relationship between coffee acidity and total cup score.
+        </p>
 
-    <h2 id="scene-title">
-        Scene 1: Acidity and Overall Quality
-    </h2>
+        <p id="interaction-help">
+            Hover over any point to view coffee details.
+        </p>
 
-    <svg id="chart" width="900" height="520"></svg>
+        <p id="scene-progress">
+            Step 1 of 3
+        </p>
 
-    <div id="tooltip" class="tooltip"></div>
+        <h2 id="scene-title">
+            Scene 1: Acidity and Overall Quality
+        </h2>
 
-    <br>
-    <br>
+        <div class="chart-container">
+            <svg
+                id="chart"
+                width="900"
+                height="520"
+                viewBox="0 0 900 520">
+            </svg>
+        </div>
 
-    <button id="next-button">Next</button>
+        <div id="tooltip" class="tooltip"></div>
+
+        <div class="button-row">
+            <button id="previous-button">← Previous</button>
+            <button id="next-button">Next Scene →</button>
+        </div>
+
+    </div>
 
     <script>
         var svg = d3.select("#chart");
@@ -73,10 +165,10 @@
         var height = 520;
 
         var margin = {
-            top: 40,
+            top: 55,
             right: 50,
-            bottom: 60,
-            left: 70
+            bottom: 65,
+            left: 75
         };
 
         var chartWidth = width - margin.left - margin.right;
@@ -109,10 +201,10 @@
                     return (
                         d.country &&
                         isFinite(d.acidity) &&
-                        isFinite(d.score) &&
                         isFinite(d.aroma) &&
                         isFinite(d.flavor) &&
-                        isFinite(d.sweetness)
+                        isFinite(d.sweetness) &&
+                        isFinite(d.score)
                     );
                 });
 
@@ -122,9 +214,175 @@
                 console.log("Error loading coffee.csv:", error);
             });
 
-        function drawScene1() {
+        function createChartGroup() {
+            svg.selectAll("*").remove();
+            tooltip.style("opacity", 0);
 
-            currentScene = 1;
+            return svg.append("g")
+                .attr(
+                    "transform",
+                    "translate(" + margin.left + "," + margin.top + ")"
+                );
+        }
+
+        function addGridlines(chart, yScale) {
+            chart.append("g")
+                .attr("class", "grid")
+                .call(
+                    d3.axisLeft(yScale)
+                        .tickSize(-chartWidth)
+                        .tickFormat("")
+                );
+        }
+
+        function addAxes(chart, xScale, yScale) {
+            chart.append("g")
+                .attr(
+                    "transform",
+                    "translate(0," + chartHeight + ")"
+                )
+                .call(d3.axisBottom(xScale));
+
+            chart.append("g")
+                .call(d3.axisLeft(yScale));
+        }
+
+        function addAxisLabels(chart, xLabel, yLabel) {
+            chart.append("text")
+                .attr("x", chartWidth / 2)
+                .attr("y", chartHeight + 48)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "15px")
+                .text(xLabel);
+
+            chart.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("x", -chartHeight / 2)
+                .attr("y", -52)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "15px")
+                .text(yLabel);
+        }
+
+        function addAnnotation(
+            chart,
+            text,
+            boxX,
+            boxY,
+            boxWidth,
+            lineStartX,
+            lineStartY,
+            lineEndX,
+            lineEndY
+        ) {
+            chart.append("rect")
+                .attr("class", "annotation-box")
+                .attr("x", boxX)
+                .attr("y", boxY)
+                .attr("width", boxWidth)
+                .attr("height", 36);
+
+            chart.append("text")
+                .attr("x", boxX + 10)
+                .attr("y", boxY + 23)
+                .attr("font-size", "14px")
+                .text(text);
+
+            chart.append("line")
+                .attr("class", "annotation-line")
+                .attr("x1", lineStartX)
+                .attr("y1", lineStartY)
+                .attr("x2", lineEndX)
+                .attr("y2", lineEndY);
+
+            chart.append("circle")
+                .attr("cx", lineEndX)
+                .attr("cy", lineEndY)
+                .attr("r", 4)
+                .attr("fill", "white")
+                .attr("stroke", "#333333");
+        }
+
+        function addPoints(
+            chart,
+            data,
+            xScale,
+            yScale,
+            xField,
+            yField,
+            xLabel,
+            yLabel,
+            color
+        ) {
+            chart.selectAll("circle.data-point")
+                .data(data)
+                .enter()
+                .append("circle")
+                .attr("class", "data-point")
+                .attr("cx", function (d) {
+                    return xScale(d[xField]);
+                })
+                .attr("cy", function (d) {
+                    return yScale(d[yField]);
+                })
+                .attr("r", 4)
+                .attr("fill", color)
+                .attr("opacity", 0.6)
+                .on("mouseover", function (d) {
+                    d3.select(this)
+                        .attr("r", 6)
+                        .attr("opacity", 0.9);
+
+                    tooltip
+                        .style("opacity", 1)
+                        .html(
+                            "<strong>Country:</strong> " + d.country +
+                            "<br><strong>" + xLabel + ":</strong> " +
+                            d[xField].toFixed(1) +
+                            "<br><strong>" + yLabel + ":</strong> " +
+                            d[yField].toFixed(1)
+                        );
+                })
+                .on("mousemove", function () {
+                    tooltip
+                        .style(
+                            "left",
+                            (d3.event.pageX + 12) + "px"
+                        )
+                        .style(
+                            "top",
+                            (d3.event.pageY - 25) + "px"
+                        );
+                })
+                .on("mouseout", function () {
+                    d3.select(this)
+                        .attr("r", 4)
+                        .attr("opacity", 0.6);
+
+                    tooltip.style("opacity", 0);
+                });
+        }
+
+        function updateNavigation(sceneNumber) {
+            currentScene = sceneNumber;
+
+            d3.select("#scene-progress")
+                .text("Step " + sceneNumber + " of 3");
+
+            d3.select("#previous-button")
+                .property("disabled", sceneNumber === 1);
+
+            if (sceneNumber === 3) {
+                d3.select("#next-button")
+                    .text("Start Over");
+            } else {
+                d3.select("#next-button")
+                    .text("Next Scene →");
+            }
+        }
+
+        function drawScene1() {
+            updateNavigation(1);
 
             d3.select("#scene-title")
                 .text("Scene 1: Acidity and Overall Quality");
@@ -134,18 +392,7 @@
                     "This scene explores the relationship between coffee acidity and total cup score."
                 );
 
-            d3.select("#next-button")
-                .text("Next");
-
-            tooltip.style("opacity", 0);
-
-            svg.selectAll("*").remove();
-
-            var chart = svg.append("g")
-                .attr(
-                    "transform",
-                    "translate(" + margin.left + "," + margin.top + ")"
-                );
+            var chart = createChartGroup();
 
             var x = d3.scaleLinear()
                 .domain([5, 9])
@@ -164,88 +411,42 @@
                 );
             });
 
-            chart.append("g")
-                .attr(
-                    "transform",
-                    "translate(0," + chartHeight + ")"
-                )
-                .call(d3.axisBottom(x));
+            addGridlines(chart, y);
+            addAxes(chart, x, y);
 
-            chart.append("g")
-                .call(d3.axisLeft(y));
+            addPoints(
+                chart,
+                visibleData,
+                x,
+                y,
+                "acidity",
+                "score",
+                "Acidity",
+                "Total Score",
+                "steelblue"
+            );
 
-            chart.selectAll("circle")
-                .data(visibleData)
-                .enter()
-                .append("circle")
-                .attr("cx", function (d) {
-                    return x(d.acidity);
-                })
-                .attr("cy", function (d) {
-                    return y(d.score);
-                })
-                .attr("r", 4)
-                .attr("fill", "steelblue")
-                .attr("opacity", 0.6)
-                .on("mouseover", function (d) {
-                    d3.select(this).attr("r", 6);
+            addAxisLabels(
+                chart,
+                "Acidity",
+                "Total Cup Points"
+            );
 
-                    tooltip
-                        .style("opacity", 1)
-                        .html(
-                            "Country: " + d.country +
-                            "<br>Acidity: " + d.acidity.toFixed(1) +
-                            "<br>Total Score: " + d.score.toFixed(1)
-                        );
-                })
-                .on("mousemove", function () {
-                    tooltip
-                        .style(
-                            "left",
-                            (d3.event.pageX + 10) + "px"
-                        )
-                        .style(
-                            "top",
-                            (d3.event.pageY - 20) + "px"
-                        );
-                })
-                .on("mouseout", function () {
-                    d3.select(this).attr("r", 4);
-                    tooltip.style("opacity", 0);
-                });
-
-            chart.append("text")
-                .attr("x", chartWidth / 2)
-                .attr("y", chartHeight + 45)
-                .attr("text-anchor", "middle")
-                .text("Acidity");
-
-            chart.append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("x", -chartHeight / 2)
-                .attr("y", -50)
-                .attr("text-anchor", "middle")
-                .text("Total Cup Points");
-
-            chart.append("text")
-                .attr("x", x(5.5))
-                .attr("y", y(96))
-                .attr("font-size", "14px")
-                .text(
-                    "Higher acidity is generally associated with higher scores."
-                );
-
-            chart.append("line")
-                .attr("x1", x(6.1))
-                .attr("y1", y(95.2))
-                .attr("x2", x(8.0))
-                .attr("y2", y(87))
-                .attr("stroke", "black");
+            addAnnotation(
+                chart,
+                "Higher acidity is generally associated with higher scores.",
+                x(5.35),
+                y(98),
+                420,
+                x(6.3),
+                y(94),
+                x(8.0),
+                y(87)
+            );
         }
 
         function drawScene2() {
-
-            currentScene = 2;
+            updateNavigation(2);
 
             d3.select("#scene-title")
                 .text("Scene 2: Aroma and Flavor");
@@ -255,18 +456,7 @@
                     "This scene explores the relationship between coffee aroma and flavor."
                 );
 
-            d3.select("#next-button")
-                .text("Next");
-
-            tooltip.style("opacity", 0);
-
-            svg.selectAll("*").remove();
-
-            var chart = svg.append("g")
-                .attr(
-                    "transform",
-                    "translate(" + margin.left + "," + margin.top + ")"
-                );
+            var chart = createChartGroup();
 
             var x = d3.scaleLinear()
                 .domain([5, 9])
@@ -285,111 +475,52 @@
                 );
             });
 
-            chart.append("g")
-                .attr(
-                    "transform",
-                    "translate(0," + chartHeight + ")"
-                )
-                .call(d3.axisBottom(x));
+            addGridlines(chart, y);
+            addAxes(chart, x, y);
 
-            chart.append("g")
-                .call(d3.axisLeft(y));
+            addPoints(
+                chart,
+                visibleData,
+                x,
+                y,
+                "aroma",
+                "flavor",
+                "Aroma",
+                "Flavor",
+                "darkorange"
+            );
 
-            chart.selectAll("circle")
-                .data(visibleData)
-                .enter()
-                .append("circle")
-                .attr("cx", function (d) {
-                    return x(d.aroma);
-                })
-                .attr("cy", function (d) {
-                    return y(d.flavor);
-                })
-                .attr("r", 4)
-                .attr("fill", "darkorange")
-                .attr("opacity", 0.6)
-                .on("mouseover", function (d) {
-                    d3.select(this).attr("r", 6);
+            addAxisLabels(
+                chart,
+                "Aroma",
+                "Flavor"
+            );
 
-                    tooltip
-                        .style("opacity", 1)
-                        .html(
-                            "Country: " + d.country +
-                            "<br>Aroma: " + d.aroma.toFixed(1) +
-                            "<br>Flavor: " + d.flavor.toFixed(1)
-                        );
-                })
-                .on("mousemove", function () {
-                    tooltip
-                        .style(
-                            "left",
-                            (d3.event.pageX + 10) + "px"
-                        )
-                        .style(
-                            "top",
-                            (d3.event.pageY - 20) + "px"
-                        );
-                })
-                .on("mouseout", function () {
-                    d3.select(this).attr("r", 4);
-                    tooltip.style("opacity", 0);
-                });
-
-            chart.append("text")
-                .attr("x", chartWidth / 2)
-                .attr("y", chartHeight + 45)
-                .attr("text-anchor", "middle")
-                .text("Aroma");
-
-            chart.append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("x", -chartHeight / 2)
-                .attr("y", -50)
-                .attr("text-anchor", "middle")
-                .text("Flavor");
-
-            chart.append("text")
-                .attr("x", x(5.5))
-                .attr("y", y(8.7))
-                .attr("font-size", "14px")
-                .text(
-                    "Higher aroma scores are generally connected to higher flavor scores."
-                );
-
-            chart.append("line")
-                .attr("x1", x(6.1))
-                .attr("y1", y(8.55))
-                .attr("x2", x(7.9))
-                .attr("y2", y(8.0))
-                .attr("stroke", "black");
+            addAnnotation(
+                chart,
+                "Higher aroma scores are generally connected to higher flavor scores.",
+                x(5.35),
+                y(8.95),
+                455,
+                x(6.35),
+                y(8.55),
+                x(7.9),
+                y(8.0)
+            );
         }
 
         function drawScene3() {
-
-            currentScene = 3;
+            updateNavigation(3);
 
             d3.select("#scene-title")
-                .text(
-                    "Scene 3: Sweetness and Overall Quality"
-                );
+                .text("Scene 3: Sweetness and Overall Quality");
 
             d3.select("#scene-description")
                 .text(
                     "This scene explores the relationship between coffee sweetness and total cup score."
                 );
 
-            d3.select("#next-button")
-                .text("Start Over");
-
-            tooltip.style("opacity", 0);
-
-            svg.selectAll("*").remove();
-
-            var chart = svg.append("g")
-                .attr(
-                    "transform",
-                    "translate(" + margin.left + "," + margin.top + ")"
-                );
+            var chart = createChartGroup();
 
             var x = d3.scaleLinear()
                 .domain([5, 10])
@@ -408,83 +539,38 @@
                 );
             });
 
-            chart.append("g")
-                .attr(
-                    "transform",
-                    "translate(0," + chartHeight + ")"
-                )
-                .call(d3.axisBottom(x));
+            addGridlines(chart, y);
+            addAxes(chart, x, y);
 
-            chart.append("g")
-                .call(d3.axisLeft(y));
+            addPoints(
+                chart,
+                visibleData,
+                x,
+                y,
+                "sweetness",
+                "score",
+                "Sweetness",
+                "Total Score",
+                "green"
+            );
 
-            chart.selectAll("circle")
-                .data(visibleData)
-                .enter()
-                .append("circle")
-                .attr("cx", function (d) {
-                    return x(d.sweetness);
-                })
-                .attr("cy", function (d) {
-                    return y(d.score);
-                })
-                .attr("r", 4)
-                .attr("fill", "green")
-                .attr("opacity", 0.6)
-                .on("mouseover", function (d) {
-                    d3.select(this).attr("r", 6);
+            addAxisLabels(
+                chart,
+                "Sweetness",
+                "Total Cup Points"
+            );
 
-                    tooltip
-                        .style("opacity", 1)
-                        .html(
-                            "Country: " + d.country +
-                            "<br>Sweetness: " + d.sweetness.toFixed(1) +
-                            "<br>Total Score: " + d.score.toFixed(1)
-                        );
-                })
-                .on("mousemove", function () {
-                    tooltip
-                        .style(
-                            "left",
-                            (d3.event.pageX + 10) + "px"
-                        )
-                        .style(
-                            "top",
-                            (d3.event.pageY - 20) + "px"
-                        );
-                })
-                .on("mouseout", function () {
-                    d3.select(this).attr("r", 4);
-                    tooltip.style("opacity", 0);
-                });
-
-            chart.append("text")
-                .attr("x", chartWidth / 2)
-                .attr("y", chartHeight + 45)
-                .attr("text-anchor", "middle")
-                .text("Sweetness");
-
-            chart.append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("x", -chartHeight / 2)
-                .attr("y", -50)
-                .attr("text-anchor", "middle")
-                .text("Total Cup Points");
-
-            chart.append("text")
-                .attr("x", x(5.4))
-                .attr("y", y(96))
-                .attr("font-size", "14px")
-                .text(
-                    "Many high-scoring coffees also have high sweetness ratings."
-                );
-
-            chart.append("line")
-                .attr("x1", x(6.2))
-                .attr("y1", y(95.3))
-                .attr("x2", x(9.0))
-                .attr("y2", y(87))
-                .attr("stroke", "black");
+            addAnnotation(
+                chart,
+                "Many high-scoring coffees also have high sweetness ratings.",
+                x(5.3),
+                y(98),
+                415,
+                x(6.4),
+                y(94),
+                x(9.0),
+                y(87)
+            );
         }
 
         d3.select("#next-button")
@@ -495,6 +581,15 @@
                     drawScene3();
                 } else {
                     drawScene1();
+                }
+            });
+
+        d3.select("#previous-button")
+            .on("click", function () {
+                if (currentScene === 2) {
+                    drawScene1();
+                } else if (currentScene === 3) {
+                    drawScene2();
                 }
             });
     </script>
