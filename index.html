@@ -523,7 +523,7 @@
             var chart = createChartGroup();
 
             var x = d3.scaleLinear()
-                .domain([5, 10])
+                .domain([5.5, 10])
                 .range([0, chartWidth]);
 
             var y = d3.scaleLinear()
@@ -532,7 +532,7 @@
 
             var visibleData = coffeeData.filter(function (d) {
                 return (
-                    d.sweetness >= 5 &&
+                    d.sweetness >= 5.5 &&
                     d.sweetness <= 10 &&
                     d.score >= 50 &&
                     d.score <= 100
@@ -540,7 +540,12 @@
             });
 
             addGridlines(chart, y);
-            addAxes(chart, x, y);
+
+            addAxes(
+                chart,
+                x,
+                y
+            );
 
             addPoints(
                 chart,
@@ -563,16 +568,15 @@
             addAnnotation(
                 chart,
                 "Many high-scoring coffees also have high sweetness ratings.",
-                x(5.3),
+                x(5.8),
                 y(98),
-                415,
-                x(6.4),
-                y(94),
-                x(9.0),
-                y(87)
+                390,
+                x(7.5),
+                y(93.5),
+                x(9.32),
+                y(82.2)
             );
         }
-
         d3.select("#next-button")
             .on("click", function () {
                 if (currentScene === 1) {
